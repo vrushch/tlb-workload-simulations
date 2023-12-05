@@ -46,32 +46,39 @@ glutCreateWindow('OpenGL Window')
 # TLB Simulator initialization
 tlb = TLBSimulator(size=100, replacement_policy='LRU')
 
-def simulate_graphics_operations():
-    # Simulate texture loading
-    texture_id = glGenTextures(1)
-    glBindTexture(GL_TEXTURE_2D, texture_id)
-    tlb.access(texture_id)
+# Initialize OpenGL
+glutInit()
+glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH)
+glutInitWindowSize(800, 600)
+glutCreateWindow("OpenGL Window")
 
-    # Simulate shader compilation
-    vertex_shader = glCreateShader(GL_VERTEX_SHADER)
-    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER)
-    tlb.access(vertex_shader)
-    tlb.access(fragment_shader)
+# TLB Simulator initialization
+tlb = TLBSimulator(size=100, replacement_policy='LRU')
+
+def simulate_graphics_operations(tlb):
+    # Simulate texture creation
+    texture = glGenTextures(1)
+    glBindTexture(GL_TEXTURE_2D, texture)
+    tlb.access(id(texture))
+    glDeleteTextures(texture)
 
     # Simulate buffer creation
-    buffer_id = glGenBuffers(1)
-    glBindBuffer(GL_ARRAY_BUFFER, buffer_id)
-    tlb.access(buffer_id)
+    buffer = glGenBuffers(1)
+    glBindBuffer(GL_ARRAY_BUFFER, buffer)
+    tlb.access(id(buffer))
+    glDeleteBuffers(1, [buffer])
 
-    # Cleanup (not typically done every frame, but for demonstration)
-    glDeleteTextures([texture_id])
-    glDeleteShader(vertex_shader)
-    glDeleteShader(fragment_shader)
-    glDeleteBuffers(1, [buffer_id])
+    # Simulate shader creation
+    shader = glCreateShader(GL_VERTEX_SHADER)
+    tlb.access(id(shader))
+    glDeleteShader(shader)
 
 # Run the simulation for a number of frames
 for _ in range(60):  # Assuming 60 frames per second
-    simulate_graphics_operations()
+    simulate_graphics_operations(tlb)
 
 # Print TLB stats
 print(tlb.stats())
+
+# End the OpenGL context
+glutDestroyWindow(glutGetWindow())
